@@ -1,4 +1,5 @@
 import type { AvatarProps } from '@nuxt/ui'
+import type { ApolloClient, NormalizedCacheObject } from '@apollo/client/core'
 
 export type UserStatus = 'subscribed' | 'unsubscribed' | 'bounced'
 export type SaleStatus = 'paid' | 'failed' | 'refunded'
@@ -57,4 +58,33 @@ export type Period = 'daily' | 'weekly' | 'monthly'
 export interface Range {
   start: Date
   end: Date
+}
+
+export interface ProductVariant {
+  id: string
+  name: string
+  price: number
+  stockLevel: string
+}
+
+export interface Product {
+  id: string
+  name: string
+  slug: string
+  variants: ProductVariant[]
+  featuredAsset?: {
+    preview: string
+  }
+}
+
+declare module '#app' {
+  interface NuxtApp {
+    $apollo: ApolloClient<NormalizedCacheObject>
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $apollo: ApolloClient<NormalizedCacheObject>
+  }
 }
