@@ -4,7 +4,11 @@ import {
   CREATE_PRODUCT,
   CREATE_PRODUCT_OPTION_GROUP,
   ADD_OPTION_GROUP_TO_PRODUCT,
-  CREATE_PRODUCT_VARIANTS
+  CREATE_PRODUCT_VARIANTS,
+  GET_COLLECTIONS,
+  GET_FACET_VALUES,
+  ADD_PRODUCTS_TO_COLLECTION,
+  ASSIGN_FACET_VALUES_TO_PRODUCT
 } from "~/graphql/products";
 
 const { $apollo } = useNuxtApp();
@@ -54,6 +58,7 @@ const schema = z.object({
   featuredAssetId: z.string().optional(),
   assetIds: z.array(z.string()).optional(),
   facetValueIds: z.array(z.string()).optional(),
+  collectionIds: z.array(z.string()).optional(),
   optionGroups: z.array(optionGroupSchema),
   variants: z.array(variantSchema),
   translations: z
@@ -83,10 +88,167 @@ const form = ref<FormData>({
   featuredAssetId: undefined,
   assetIds: [],
   facetValueIds: [],
+  collectionIds: [],
   optionGroups: [],
   variants: [],
   translations: [],
   customFields: {},
+});
+
+// Collections and facet values for dropdowns
+const collections = ref<any[]>([]);
+const facetValues = ref<any[]>([]);
+const collectionsLoading = ref(false);
+const facetValuesLoading = ref(false);
+const usingDemoData = ref(false);
+
+// Get selected collections and facet values with full details
+const selectedCollections = computed(() => {
+  if (!form.value.collectionIds || form.value.collectionIds.length === 0) {
+    return [];
+  }
+  return collections.value.filter(collection =>
+    form.value.collectionIds?.includes(collection.value)
+  );
+});
+
+const selectedFacetValues = computed(() => {
+  if (!form.value.facetValueIds || form.value.facetValueIds.length === 0) {
+    return [];
+  }
+  return facetValues.value.filter(facetValue =>
+    form.value.facetValueIds?.includes(facetValue.value)
+  );
+});
+
+// Remove collection from selection
+function removeCollection(collectionId: string) {
+  form.value.collectionIds = form.value.collectionIds?.filter(id => id !== collectionId) || [];
+}
+
+// Remove facet value from selection
+function removeFacetValue(facetValueId: string) {
+  form.value.facetValueIds = form.value.facetValueIds?.filter(id => id !== facetValueId) || [];
+}
+
+// Fetch collections for dropdown
+async function fetchCollections() {
+  try {
+    collectionsLoading.value = true;
+    console.log('Fetching collections...');
+
+    const { data } = await $apollo.query({
+      query: GET_COLLECTIONS,
+      variables: {
+        options: {
+          take: 100
+        }
+      }
+    });
+
+    console.log('Collections response:', data);
+
+    if (data?.collections?.items) {
+      collections.value = data.collections.items.map((collection: any) => ({
+        label: collection.name,
+        value: collection.id,
+        description: collection.description,
+        slug: collection.slug
+      }));
+      console.log('Mapped collections:', collections.value);
+    } else {
+      console.warn('No collections found in response');
+      collections.value = [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch collections:', error);
+    toast.add({
+      title: "Error",
+      description: "Failed to load collections",
+      color: "error",
+    });
+  } finally {
+    collectionsLoading.value = false;
+  }
+}
+
+// Fetch facet values for dropdown
+async function fetchFacetValues() {
+  try {
+    facetValuesLoading.value = true;
+    console.log('Fetching facet values...');
+
+    const { data } = await $apollo.query({
+      query: GET_FACET_VALUES,
+      variables: {
+        options: {
+          take: 200
+        }
+      }
+    });
+
+    console.log('Facet values response:', data);
+
+    if (data?.facetValues?.items) {
+      facetValues.value = data.facetValues.items.map((facetValue: any) => ({
+        label: `${facetValue.facet.name}: ${facetValue.name}`,
+        value: facetValue.id,
+        code: facetValue.code,
+        facetName: facetValue.facet.name,
+        facetCode: facetValue.facet.code
+      }));
+      console.log('Mapped facet values:', facetValues.value);
+    } else {
+      console.warn('No facet values found in response');
+      facetValues.value = [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch facet values:', error);
+    toast.add({
+      title: "Error",
+      description: "Failed to load attributes",
+      color: "error",
+    });
+  } finally {
+    facetValuesLoading.value = false;
+  }
+}
+
+// Load collections and facet values on component mount
+onMounted(async () => {
+  // Try to fetch real data first
+  try {
+    await Promise.all([fetchCollections(), fetchFacetValues()]);
+  } catch (error) {
+    console.warn('Failed to fetch data from Vendure, using fallback data');
+    usingDemoData.value = true;
+
+    // Fallback to demo data if backend is not available
+    if (collections.value.length === 0) {
+      collections.value = [
+        { label: "Electronics", value: "1", description: "Electronic devices" },
+        { label: "Clothing", value: "2", description: "Apparel and fashion" },
+        { label: "Books", value: "3", description: "Books and literature" },
+        { label: "Home & Garden", value: "4", description: "Home and garden items" },
+        { label: "Sports", value: "5", description: "Sports equipment" }
+      ];
+    }
+
+    if (facetValues.value.length === 0) {
+      facetValues.value = [
+        { label: "Color: Red", value: "1", code: "red", facetName: "Color", facetCode: "color" },
+        { label: "Color: Blue", value: "2", code: "blue", facetName: "Color", facetCode: "color" },
+        { label: "Color: Green", value: "3", code: "green", facetName: "Color", facetCode: "color" },
+        { label: "Size: Small", value: "4", code: "small", facetName: "Size", facetCode: "size" },
+        { label: "Size: Medium", value: "5", code: "medium", facetName: "Size", facetCode: "size" },
+        { label: "Size: Large", value: "6", code: "large", facetName: "Size", facetCode: "size" },
+        { label: "Brand: Nike", value: "7", code: "nike", facetName: "Brand", facetCode: "brand" },
+        { label: "Brand: Adidas", value: "8", code: "adidas", facetName: "Brand", facetCode: "brand" },
+        { label: "Material: Cotton", value: "9", code: "cotton", facetName: "Material", facetCode: "material" },
+        { label: "Material: Polyester", value: "10", code: "polyester", facetName: "Material", facetCode: "material" }
+      ];
+    }
+  }
 });
 
 // Generate unique IDs
@@ -483,6 +645,38 @@ async function onSubmit() {
       color: "success",
     });
 
+    // Step 4: Assign collections to product (if any)
+    if (form.value.collectionIds && form.value.collectionIds.length > 0) {
+      try {
+        for (const collectionId of form.value.collectionIds) {
+          await $apollo.mutate({
+            mutation: ADD_PRODUCTS_TO_COLLECTION,
+            variables: {
+              collectionId,
+              productIds: [product.id]
+            }
+          });
+        }
+      } catch (collectionError) {
+        console.warn('Failed to assign collections, continuing...', collectionError);
+      }
+    }
+
+    // Step 5: Assign facet values to product (if any)
+    if (form.value.facetValueIds && form.value.facetValueIds.length > 0) {
+      try {
+        await $apollo.mutate({
+          mutation: ASSIGN_FACET_VALUES_TO_PRODUCT,
+          variables: {
+            productId: product.id,
+            facetValueIds: form.value.facetValueIds
+          }
+        });
+      } catch (facetError) {
+        console.warn('Failed to assign facet values, continuing...', facetError);
+      }
+    }
+
     // Navigate to the created product
     await router.push(`/products/${product.id}`);
   } catch (error: any) {
@@ -554,7 +748,7 @@ function onCancel() {
           @submit="onSubmit"
         >
           <!-- Main Content Area - Left Side (2/3) -->
-          <div class="w-2/3 space-y-6">
+          <div class="w-2/3 space-y-8">
             <!-- Basic Information -->
             <UCard>
               <template #header>
@@ -773,7 +967,7 @@ function onCancel() {
                           >
                             <span>{{ option.name }}</span>
                             <UButton
-                              size="2xs"
+                              size="xs"
                               color="error"
                               variant="ghost"
                               icon="i-heroicons-x-mark"
@@ -907,39 +1101,131 @@ function onCancel() {
           </div>
 
           <!-- Right Sidebar - Secondary Information (1/3) -->
-          <div class="w-1/3 space-y-6">
-            <!-- Organization -->
+          <div class="w-1/3 space-y-8">
+            <!-- Categories & Collections -->
             <UCard>
               <template #header>
-                <h2 class="text-lg font-semibold">Organization</h2>
+                <h2 class="text-lg font-semibold">Categories & Collections</h2>
               </template>
 
               <div class="space-y-4">
-                <UFormGroup label="Categories & Tags" name="facetValueIds">
-                  <USelectMenu
-                    v-model="form.facetValueIds"
-                    :options="[]"
+                <!-- Demo data notice -->
+                <UAlert
+                  v-if="usingDemoData"
+                  icon="i-heroicons-information-circle"
+                  color="warning"
+                  variant="outline"
+                  title="Demo Data"
+                  description="Using demo data because Vendure backend is not available"
+                />
+
+                <UFormGroup label="Collections" name="collectionIds">
+                  <USelect
+                    v-model="form.collectionIds"
+                    :items="collections"
                     multiple
-                    placeholder="Select categories"
-                    :disabled="loading"
+                    searchable
+                    placeholder="Select collections"
+                    :disabled="loading || collectionsLoading"
+                    :loading="collectionsLoading"
                   >
                     <template #empty>
                       <div class="text-center py-4">
                         <p class="text-sm text-gray-500">
-                          No categories available
+                          {{ collectionsLoading ? "Loading collections..." : "No collections available" }}
                         </p>
-                        <p class="text-xs text-gray-400 mt-1">
-                          Categories will be loaded from your Vendure instance
+                        <p v-if="!collectionsLoading" class="text-xs text-gray-400 mt-1">
+                          Collections will be loaded from your Vendure instance
                         </p>
                       </div>
                     </template>
-                  </USelectMenu>
+                  </USelect>
                   <template #help>
                     <span class="text-sm text-gray-500">
-                      Choose categories and tags to help organize your product
+                      Add this product to collections for better organization
                     </span>
                   </template>
                 </UFormGroup>
+
+                <!-- Selected Collections as Tags -->
+                <div v-if="selectedCollections.length > 0" class="space-y-3">
+                  <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Selected Collections ({{ selectedCollections.length }})
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    <UBadge
+                      v-for="collection in selectedCollections"
+                      :key="collection.value"
+                      :label="collection.label"
+                      variant="soft"
+                      color="primary"
+                      size="md"
+                      class="px-3 py-1.5 cursor-pointer hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                      @click="removeCollection(collection.value)"
+                    >
+                      <template #trailing>
+                        <i class="i-lucide-x w-3 h-3" />
+                      </template>
+                    </UBadge>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    Click on a tag to remove the collection from selection
+                  </p>
+                </div>
+
+                <UFormGroup label="Attributes & Tags" name="facetValueIds">
+                  <USelect
+                    v-model="form.facetValueIds"
+                    :items="facetValues"
+                    multiple
+                    searchable
+                    placeholder="Select attributes"
+                    :disabled="loading || facetValuesLoading"
+                    :loading="facetValuesLoading"
+                  >
+                    <template #empty>
+                      <div class="text-center py-4">
+                        <p class="text-sm text-gray-500">
+                          {{ facetValuesLoading ? "Loading attributes..." : "No attributes available" }}
+                        </p>
+                        <p v-if="!facetValuesLoading" class="text-xs text-gray-400 mt-1">
+                          Attributes will be loaded from your Vendure instance
+                        </p>
+                      </div>
+                    </template>
+                  </USelect>
+                  <template #help>
+                    <span class="text-sm text-gray-500">
+                      Choose attributes and tags to help categorize your product
+                    </span>
+                  </template>
+                </UFormGroup>
+
+                <!-- Selected Facet Values as Tags -->
+                <div v-if="selectedFacetValues.length > 0" class="space-y-3">
+                  <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Selected Attributes ({{ selectedFacetValues.length }})
+                  </h3>
+                  <div class="flex flex-wrap gap-2">
+                    <UBadge
+                      v-for="facetValue in selectedFacetValues"
+                      :key="facetValue.value"
+                      :label="facetValue.label"
+                      variant="soft"
+                      color="secondary"
+                      size="md"
+                      class="px-3 py-1.5 cursor-pointer hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+                      @click="removeFacetValue(facetValue.value)"
+                    >
+                      <template #trailing>
+                        <i class="i-lucide-x w-3 h-3" />
+                      </template>
+                    </UBadge>
+                  </div>
+                  <p class="text-xs text-gray-500">
+                    Click on a tag to remove the attribute from selection
+                  </p>
+                </div>
               </div>
             </UCard>
 
@@ -1047,7 +1333,13 @@ function onCancel() {
                     </div>
                   </div>
                   <div>
-                    <span class="text-gray-500">Categories:</span>
+                    <span class="text-gray-500">Collections:</span>
+                    <div class="font-medium">
+                      {{ form.collectionIds?.length || 0 }}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="text-gray-500">Attributes:</span>
                     <div class="font-medium">
                       {{ form.facetValueIds?.length || 0 }}
                     </div>

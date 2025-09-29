@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from "@apollo/client";
 
 // ============================================================================
 // QUERIES
@@ -47,7 +47,7 @@ export const GET_PRODUCTS = gql`
       totalItems
     }
   }
-`
+`;
 
 export const GET_PRODUCT = gql`
   query Product($id: ID!) {
@@ -134,7 +134,7 @@ export const GET_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const SEARCH_PRODUCTS = gql`
   query SearchProducts($input: SearchInput!) {
@@ -191,7 +191,80 @@ export const SEARCH_PRODUCTS = gql`
       }
     }
   }
-`
+`;
+
+export const GET_COLLECTIONS = gql`
+  query Collections($options: CollectionListOptions) {
+    collections(options: $options) {
+      items {
+        id
+        name
+        slug
+        description
+        isPrivate
+        parentId
+        position
+        featuredAsset {
+          id
+          name
+          preview
+        }
+        breadcrumbs {
+          id
+          name
+          slug
+        }
+        children {
+          id
+          name
+        }
+      }
+      totalItems
+    }
+  }
+`;
+
+export const GET_FACETS = gql`
+  query Facets($options: FacetListOptions) {
+    facets(options: $options) {
+      items {
+        id
+        name
+        code
+        isPrivate
+        languageCode
+        values {
+          id
+          name
+          code
+          facet {
+            id
+            name
+          }
+        }
+      }
+      totalItems
+    }
+  }
+`;
+
+export const GET_FACET_VALUES = gql`
+  query FacetValues($options: FacetValueListOptions) {
+    facetValues(options: $options) {
+      items {
+        id
+        name
+        code
+        facet {
+          id
+          name
+          code
+        }
+      }
+      totalItems
+    }
+  }
+`;
 
 export const GET_PRODUCT_VARIANTS = gql`
   query ProductVariants($options: ProductVariantListOptions) {
@@ -239,7 +312,7 @@ export const GET_PRODUCT_VARIANTS = gql`
       totalItems
     }
   }
-`
+`;
 
 export const GET_PRODUCT_VARIANT = gql`
   query ProductVariant($id: ID!) {
@@ -314,7 +387,7 @@ export const GET_PRODUCT_VARIANT = gql`
       }
     }
   }
-`
+`;
 
 // ============================================================================
 // MUTATIONS
@@ -350,7 +423,7 @@ export const CREATE_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const UPDATE_PRODUCT = gql`
   mutation UpdateProduct($input: UpdateProductInput!) {
@@ -397,7 +470,7 @@ export const UPDATE_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const DELETE_PRODUCT = gql`
   mutation DeleteProduct($id: ID!) {
@@ -406,7 +479,7 @@ export const DELETE_PRODUCT = gql`
       message
     }
   }
-`
+`;
 
 export const DELETE_PRODUCTS = gql`
   mutation DeleteProducts($ids: [ID!]!) {
@@ -415,11 +488,14 @@ export const DELETE_PRODUCTS = gql`
       message
     }
   }
-`
+`;
 
 export const ADD_OPTION_GROUP_TO_PRODUCT = gql`
   mutation AddOptionGroupToProduct($productId: ID!, $optionGroupId: ID!) {
-    addOptionGroupToProduct(productId: $productId, optionGroupId: $optionGroupId) {
+    addOptionGroupToProduct(
+      productId: $productId
+      optionGroupId: $optionGroupId
+    ) {
       id
       optionGroups {
         id
@@ -433,11 +509,19 @@ export const ADD_OPTION_GROUP_TO_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const REMOVE_OPTION_GROUP_FROM_PRODUCT = gql`
-  mutation RemoveOptionGroupFromProduct($productId: ID!, $optionGroupId: ID!, $force: Boolean) {
-    removeOptionGroupFromProduct(productId: $productId, optionGroupId: $optionGroupId, force: $force) {
+  mutation RemoveOptionGroupFromProduct(
+    $productId: ID!
+    $optionGroupId: ID!
+    $force: Boolean
+  ) {
+    removeOptionGroupFromProduct(
+      productId: $productId
+      optionGroupId: $optionGroupId
+      force: $force
+    ) {
       ... on Product {
         id
         optionGroups {
@@ -463,7 +547,7 @@ export const REMOVE_OPTION_GROUP_FROM_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const CREATE_PRODUCT_OPTION_GROUP = gql`
   mutation CreateProductOptionGroup($input: CreateProductOptionGroupInput!) {
@@ -478,7 +562,7 @@ export const CREATE_PRODUCT_OPTION_GROUP = gql`
       }
     }
   }
-`
+`;
 
 export const CREATE_PRODUCT_OPTION = gql`
   mutation CreateProductOption($input: CreateProductOptionInput!) {
@@ -493,7 +577,54 @@ export const CREATE_PRODUCT_OPTION = gql`
       }
     }
   }
-`
+`;
+
+export const CREATE_COLLECTION = gql`
+  mutation CreateCollection($input: CreateCollectionInput!) {
+    createCollection(input: $input) {
+      id
+      name
+      slug
+      description
+      isPrivate
+      position
+      featuredAsset {
+        id
+        name
+        preview
+      }
+      parentId
+      children {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const UPDATE_COLLECTION = gql`
+  mutation UpdateCollection($input: UpdateCollectionInput!) {
+    updateCollection(input: $input) {
+      ... on Collection {
+        id
+        name
+        slug
+        description
+        isPrivate
+        position
+        featuredAsset {
+          id
+          name
+          preview
+        }
+      }
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+    }
+  }
+`;
 
 export const ASSIGN_PRODUCTS_TO_CHANNEL = gql`
   mutation AssignProductsToChannel($input: AssignProductsToChannelInput!) {
@@ -511,7 +642,7 @@ export const ASSIGN_PRODUCTS_TO_CHANNEL = gql`
       }
     }
   }
-`
+`;
 
 export const REMOVE_PRODUCTS_FROM_CHANNEL = gql`
   mutation RemoveProductsFromChannel($input: RemoveProductsFromChannelInput!) {
@@ -529,7 +660,7 @@ export const REMOVE_PRODUCTS_FROM_CHANNEL = gql`
       }
     }
   }
-`
+`;
 
 // ============================================================================
 // PRODUCT VARIANT MUTATIONS
@@ -566,7 +697,7 @@ export const CREATE_PRODUCT_VARIANTS = gql`
       }
     }
   }
-`
+`;
 
 export const UPDATE_PRODUCT_VARIANTS = gql`
   mutation UpdateProductVariants($input: [UpdateProductVariantInput!]!) {
@@ -605,7 +736,7 @@ export const UPDATE_PRODUCT_VARIANTS = gql`
       }
     }
   }
-`
+`;
 
 export const DELETE_PRODUCT_VARIANT = gql`
   mutation DeleteProductVariant($id: ID!) {
@@ -614,7 +745,7 @@ export const DELETE_PRODUCT_VARIANT = gql`
       message
     }
   }
-`
+`;
 
 export const DELETE_PRODUCT_VARIANTS = gql`
   mutation DeleteProductVariants($ids: [ID!]!) {
@@ -623,10 +754,12 @@ export const DELETE_PRODUCT_VARIANTS = gql`
       message
     }
   }
-`
+`;
 
 export const UPDATE_PRODUCT_VARIANT_CHANNELS = gql`
-  mutation UpdateProductVariantChannels($input: UpdateProductVariantChannelInput!) {
+  mutation UpdateProductVariantChannels(
+    $input: UpdateProductVariantChannelInput!
+  ) {
     updateProductVariantChannels(input: $input) {
       ... on ProductVariant {
         id
@@ -641,10 +774,12 @@ export const UPDATE_PRODUCT_VARIANT_CHANNELS = gql`
       }
     }
   }
-`
+`;
 
 export const ASSIGN_PRODUCT_VARIANTS_TO_CHANNEL = gql`
-  mutation AssignProductVariantsToChannel($input: AssignProductVariantsToChannelInput!) {
+  mutation AssignProductVariantsToChannel(
+    $input: AssignProductVariantsToChannelInput!
+  ) {
     assignProductVariantsToChannel(input: $input) {
       ... on ProductVariant {
         id
@@ -659,10 +794,12 @@ export const ASSIGN_PRODUCT_VARIANTS_TO_CHANNEL = gql`
       }
     }
   }
-`
+`;
 
 export const REMOVE_PRODUCT_VARIANTS_FROM_CHANNEL = gql`
-  mutation RemoveProductVariantsFromChannel($input: RemoveProductVariantsFromChannelInput!) {
+  mutation RemoveProductVariantsFromChannel(
+    $input: RemoveProductVariantsFromChannelInput!
+  ) {
     removeProductVariantsFromChannel(input: $input) {
       ... on ProductVariant {
         id
@@ -677,7 +814,7 @@ export const REMOVE_PRODUCT_VARIANTS_FROM_CHANNEL = gql`
       }
     }
   }
-`
+`;
 
 // ============================================================================
 // STOCK & INVENTORY MUTATIONS
@@ -703,7 +840,7 @@ export const UPDATE_STOCK = gql`
       }
     }
   }
-`
+`;
 
 export const ADD_STOCK_TO_LOCATION = gql`
   mutation AddStockToLocation($input: AddStockToLocationInput!) {
@@ -723,7 +860,7 @@ export const ADD_STOCK_TO_LOCATION = gql`
       }
     }
   }
-`
+`;
 
 // ============================================================================
 // ASSET & IMAGE MANAGEMENT MUTATIONS
@@ -762,7 +899,7 @@ export const CREATE_ASSETS = gql`
       }
     }
   }
-`
+`;
 
 export const UPDATE_ASSET = gql`
   mutation UpdateAsset($input: UpdateAssetInput!) {
@@ -791,7 +928,7 @@ export const UPDATE_ASSET = gql`
       }
     }
   }
-`
+`;
 
 export const DELETE_ASSET = gql`
   mutation DeleteAsset($input: DeleteAssetInput!) {
@@ -800,7 +937,7 @@ export const DELETE_ASSET = gql`
       message
     }
   }
-`
+`;
 
 export const DELETE_ASSETS = gql`
   mutation DeleteAssets($input: DeleteAssetsInput!) {
@@ -809,7 +946,7 @@ export const DELETE_ASSETS = gql`
       message
     }
   }
-`
+`;
 
 export const ASSIGN_ASSETS_TO_CHANNEL = gql`
   mutation AssignAssetsToChannel($input: AssignAssetsToChannelInput!) {
@@ -827,7 +964,7 @@ export const ASSIGN_ASSETS_TO_CHANNEL = gql`
       }
     }
   }
-`
+`;
 
 // ============================================================================
 // FACET & COLLECTION MUTATIONS
@@ -835,7 +972,10 @@ export const ASSIGN_ASSETS_TO_CHANNEL = gql`
 
 export const ASSIGN_FACET_VALUES_TO_PRODUCT = gql`
   mutation AssignFacetValuesToProduct($productId: ID!, $facetValueIds: [ID!]!) {
-    assignFacetValuesToProduct(productId: $productId, facetValueIds: $facetValueIds) {
+    assignFacetValuesToProduct(
+      productId: $productId
+      facetValueIds: $facetValueIds
+    ) {
       ... on Product {
         id
         facetValues {
@@ -854,11 +994,17 @@ export const ASSIGN_FACET_VALUES_TO_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const REMOVE_FACET_VALUES_FROM_PRODUCT = gql`
-  mutation RemoveFacetValuesFromProduct($productId: ID!, $facetValueIds: [ID!]!) {
-    removeFacetValuesFromProduct(productId: $productId, facetValueIds: $facetValueIds) {
+  mutation RemoveFacetValuesFromProduct(
+    $productId: ID!
+    $facetValueIds: [ID!]!
+  ) {
+    removeFacetValuesFromProduct(
+      productId: $productId
+      facetValueIds: $facetValueIds
+    ) {
       ... on Product {
         id
         facetValues {
@@ -877,11 +1023,14 @@ export const REMOVE_FACET_VALUES_FROM_PRODUCT = gql`
       }
     }
   }
-`
+`;
 
 export const ADD_PRODUCTS_TO_COLLECTION = gql`
   mutation AddProductsToCollection($collectionId: ID!, $productIds: [ID!]!) {
-    addProductsToCollection(collectionId: $collectionId, productIds: $productIds) {
+    addProductsToCollection(
+      collectionId: $collectionId
+      productIds: $productIds
+    ) {
       ... on Collection {
         id
         name
@@ -895,11 +1044,17 @@ export const ADD_PRODUCTS_TO_COLLECTION = gql`
       }
     }
   }
-`
+`;
 
 export const REMOVE_PRODUCTS_FROM_COLLECTION = gql`
-  mutation RemoveProductsFromCollection($collectionId: ID!, $productIds: [ID!]!) {
-    removeProductsFromCollection(collectionId: $collectionId, productIds: $productIds) {
+  mutation RemoveProductsFromCollection(
+    $collectionId: ID!
+    $productIds: [ID!]!
+  ) {
+    removeProductsFromCollection(
+      collectionId: $collectionId
+      productIds: $productIds
+    ) {
       ... on Collection {
         id
         name
@@ -913,4 +1068,4 @@ export const REMOVE_PRODUCTS_FROM_COLLECTION = gql`
       }
     }
   }
-`
+`;
