@@ -37,8 +37,8 @@ const links = [
           },
         },
         {
-          label: "Inventory",
-          to: "/inventory",
+          label: "Attributes",
+          to: "/products/attributes",
           onSelect: () => {
             open.value = false;
           },

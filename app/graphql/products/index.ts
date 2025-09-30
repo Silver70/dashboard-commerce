@@ -970,6 +970,70 @@ export const ASSIGN_ASSETS_TO_CHANNEL = gql`
 // FACET & COLLECTION MUTATIONS
 // ============================================================================
 
+export const CREATE_FACET = gql`
+  mutation CreateFacet($input: CreateFacetInput!) {
+    createFacet(input: $input) {
+      id
+      name
+      code
+      isPrivate
+      languageCode
+      values {
+        id
+        name
+        code
+      }
+    }
+  }
+`;
+
+export const UPDATE_FACET = gql`
+  mutation UpdateFacet($input: UpdateFacetInput!) {
+    updateFacet(input: $input) {
+      ... on Facet {
+        id
+        name
+        code
+        isPrivate
+        languageCode
+        values {
+          id
+          name
+          code
+        }
+      }
+      ... on ErrorResult {
+        errorCode
+        message
+      }
+    }
+  }
+`;
+
+export const DELETE_FACET = gql`
+  mutation DeleteFacet($id: ID!, $force: Boolean) {
+    deleteFacet(id: $id, force: $force) {
+      result
+      message
+    }
+  }
+`;
+
+export const CREATE_FACET_VALUES = gql`
+  mutation CreateFacetValues($input: [CreateFacetValueInput!]!) {
+    createFacetValues(input: $input) {
+      id
+      name
+      code
+      facet {
+        id
+        name
+        code
+      }
+    }
+  }
+`;
+
 export const ASSIGN_FACET_VALUES_TO_PRODUCT = gql`
   mutation AssignFacetValuesToProduct($productId: ID!, $facetValueIds: [ID!]!) {
     assignFacetValuesToProduct(
