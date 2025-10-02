@@ -115,6 +115,11 @@ Key TypeScript interfaces defined in `app/types/index.d.ts`:
 
 Uses **pnpm** as the package manager (specified in package.json). Always use `pnpm` commands instead of npm.
 
+## RULES TO FOLLOW WHEN USING NUXT UI
+
+- invoke the nuxt ui mcp server, list the components and choose the one that best matches the design.
+- get The components implementation than apply it.
+
 ## CHANGELOG
 
 when ever you bring a change, record it here after finishing it.

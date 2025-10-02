@@ -77,6 +77,28 @@ export interface Product {
   }
 }
 
+export interface OrderCustomer {
+  id: string
+  firstName: string
+  lastName: string
+  emailAddress: string
+}
+
+export interface Order {
+  id: string
+  code: string
+  state: string
+  active: boolean
+  createdAt: string
+  updatedAt: string
+  orderPlacedAt?: string
+  totalQuantity: number
+  total: number
+  totalWithTax: number
+  currencyCode: string
+  customer?: OrderCustomer
+}
+
 declare module '#app' {
   interface NuxtApp {
     $apollo: ApolloClient<NormalizedCacheObject>

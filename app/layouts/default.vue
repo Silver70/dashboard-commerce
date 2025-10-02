@@ -45,6 +45,14 @@ const links = [
         },
       ],
     },
+    {
+      label: "Orders",
+      icon: "i-lucide-file-text",
+      to: "/orders",
+      onSelect: () => {
+        open.value = false;
+      },
+    },
 
     {
       label: "Inbox",
